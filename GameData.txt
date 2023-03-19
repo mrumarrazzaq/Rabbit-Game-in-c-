@@ -1,0 +1,8 @@
+15,7,Win
+23,31,Lose
+44,11,Win
+10,4,Win
+17,0,Win
+3,31,Lose
+0,0,Lose
+04,4,Lose

@@ -1,12 +1,22 @@
 #include<iostream>
+#include <iomanip>
 #include<conio.h>
 #include<fstream>
 #include<time.h>
 #include<windows.h>
 using namespace std;
 
+
+ifstream fin;
+
+
 void gotoxy(int x,int y);
 char getCharAtxy(short int x,short int y);
+
+void writeInFile(int score,int damage,bool isWin);
+void readFromFile();
+
+bool isOneDigit(int n);
 
 void myMainDisplay();
 int menu();
@@ -70,6 +80,92 @@ char getCharAtxy(short int x,short int y)
 	return ReadConsoleOutput(GetStdHandle(STD_OUTPUT_HANDLE), &ci,coordBufSize,xy, &rect)? ci.Char.AsciiChar : ' ';
 }
 
+void writeInFile(int score,int damage,bool isWin)
+{
+	ofstream fout;
+	fout.open("GameData.txt",ios::app); // Append mode
+	
+	string str = "Win";
+	if(isWin)
+	{
+		str = "Win";
+	}else{
+		str = "Lose";
+	}
+	
+	if(isOneDigit(score))
+	{
+		fout<<setfill('0') << std::setw(2)<<score<<",";
+	}
+	else
+	{
+		fout<<score<<",";
+	}
+	
+	if(isOneDigit(damage))
+	{
+		fout<<setfill('0') << std::setw(2)<<damage<<",";
+	}
+	else
+	{
+		fout<<score<<",";	
+	}
+	fout<<str<<endl;
+	fout.close();
+}
+
+void readFromFile()
+{
+	char ch;
+	fin.open("GameData.txt");
+	
+	fin.get(ch);
+	
+	
+	cout<<"   ______                        ____                  ____          "<<endl;
+	cout<<"  / ____/___ _____ ___  ___     / __ \\___  _______  __/ / /______   "<<endl;
+	cout<<" / / __/ __ `/ __ `__ \\/ _ \\   / /_/ / _ \\/ ___/ / / / / __/ ___/ "<<endl;
+	cout<<"/ /_/ / /_/ / / / / / /  __/  / _, _/  __(__  ) /_/ / / /_(__  )     "<<endl;
+	cout<<"\\____/\\__,_/_/ /_/ /_/\\___/  /_/ |_|\\___/____/\\__,_/_/\\__/____/"<<endl;
+	cout<<"__________________________\n";
+	cout<<"SCORE  | DAMAGE  | STATUS"<<endl;
+	while(!fin.eof())
+	{
+		if(ch==',')
+		{
+			cout<<"     |  ";
+		}
+		else
+		{
+			cout<<ch;
+		}
+		fin.get(ch);
+	}
+	fin.close();
+	cout<<"__________________________\n";
+}
+
+
+
+bool isOneDigit(int n)
+{
+	if (n == 0)
+		return 1;
+	int count = 0;
+	while (n != 0) {
+		n = n / 10;
+		++count;
+	}
+	if(count==1)
+	{
+		return true;	
+	}else{
+		return false;
+	}
+	
+}
+
+
 
 void myMainDisplay()
 {
@@ -111,7 +207,8 @@ int menu()
    	cout<<"_________________________"<<endl;
     cout<<"1.Start game"<<endl;
     cout<<"2.Keys"<<endl;
-    cout<<"3.Exit"<<endl;
+    cout<<"3.Get Game Record"<<endl;
+    cout<<"4.Exit"<<endl;
     cout<<"Enter your choice :";
     cin>>choice;
     return choice;
@@ -516,6 +613,7 @@ void sartGame()
 	bool isRight = true;
 	bool heart1_fill = true, heart2_fill = true, heart3_fill = true;
 	bool isWin = false;
+	bool isEscaped = false;
 	const int left_limit = 5;
 	const int right_limit = 106;
 	const int top_limit = 3;
@@ -621,6 +719,18 @@ void sartGame()
 			}
 	    }
 	    
+	    if(GetAsyncKeyState(VK_ESCAPE))
+	    {
+	    	heartClear(65,24);
+			heartClear(50,24);
+			heartClear(35,24);
+	    	heart1_fill = false;
+	    	heart2_fill = false;
+	    	heart3_fill = false;
+	    	isWin = true;
+	    	isEscaped = true;
+		}
+	    
 	    if(isRabbitFindSomeThing(x,y,'_',isRight) || isRabbitFindSomeThing(x,y,'/',isRight) || isRabbitFindSomeThing(x,y,'\\',isRight))
 	    {
 	    	score++;
@@ -668,22 +778,29 @@ void sartGame()
 	hideCarrot(95,14);
 	hideCarrot(110,14);
 	clearLastRow(3,18);
-	if(isWin)
+	
+	
+	if(isWin && !isEscaped)
 	{
 		heartClear(35,24);
 		heartClear(50,24);
 		heartClear(65,24);
-		
-		
 		gameWin(40,10);	
 	}else
 	{
 		gameOver(28,9);
 	}
 	
-//	getch();
+	if(!isEscaped)
+	{
+		writeInFile(score,damage,isWin);
+	}
+	score=0;
+	damage=0;
 	
 	cout<<"\n\n\n\n\n\n\n\n";
+	getch();
+	cin.ignore();
 }
 
 int main()
@@ -699,8 +816,10 @@ int main()
             system("cls");
             sartGame();
             cout<<"\n\n";
-            cout<<endl<<"Press Any Key to Continue..." << endl;
+            cout<<endl<<"Press Any Key to Continue..." << endl<<endl;
             getch();
+            cin.ignore();
+            system("cls");
         }
 		else if (choice==2)
         {
@@ -708,8 +827,18 @@ int main()
             keysinfo();
             cout<<endl<<"Press Any Key to Continue..." << endl;
             getch();
+            cin.ignore();
         }
-        else if (choice==3)
+        else if(choice==3)
+        {
+        	system("cls");
+        	readFromFile();
+        	cout<<endl<<"Press Any Key to Continue..." << endl;
+            getch();
+            cin.ignore();
+            system("cls");
+		}
+        else if (choice==4)
         {
         	flag = false;
         }
